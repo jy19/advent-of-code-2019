@@ -27,19 +27,6 @@ func getWireLocations(wire string) (*set.Set, error){
 		if err != nil {
 			return nil, err
 		}
-		//for i := 0; i < steps; i++ {
-		//	switch direction {
-		//	case "U":
-		//		currPoint.y += 1
-		//	case "D":
-		//		currPoint.y -= 1
-		//	case "L":
-		//		currPoint.x -= 1
-		//	case "R":
-		//		currPoint.x += 1
-		//	}
-		//	wireLocation.Insert(currPoint)
-		//}
 
 		switch direction {
 		case "U":
@@ -61,6 +48,54 @@ func getWireLocations(wire string) (*set.Set, error){
 			for i := 0; i < steps; i++ {
 				currPoint.x += 1
 				wireLocation.Insert(currPoint)
+			}
+		}
+
+	}
+	return wireLocation, nil
+}
+
+type Point2 struct {
+	x     int
+	y     int
+	steps int
+}
+
+func getWireLocationsWithSteps(wire string) ([]Point2, error){
+	wirePath := getWirePath(wire)
+	var wireLocation []Point2
+
+	currPoint := Point2{0, 0, 0}
+	for _, nextPath := range wirePath {
+		direction, steps, err := readDirection(nextPath)
+		if err != nil {
+			return nil, err
+		}
+
+		switch direction {
+		case "U":
+			for i := 0; i < steps; i++ {
+				currPoint.y += 1
+				currPoint.steps++
+				wireLocation = append(wireLocation, currPoint)
+			}
+		case "D":
+			for i := 0; i < steps; i++ {
+				currPoint.y -= 1
+				currPoint.steps++
+				wireLocation = append(wireLocation, currPoint)
+			}
+		case "L":
+			for i := 0; i < steps; i++ {
+				currPoint.x -= 1
+				currPoint.steps++
+				wireLocation = append(wireLocation, currPoint)
+			}
+		case "R":
+			for i := 0; i < steps; i++ {
+				currPoint.x += 1
+				currPoint.steps++
+				wireLocation = append(wireLocation, currPoint)
 			}
 		}
 
@@ -103,6 +138,22 @@ func findClosestIntersectionDist(intersections *set.Set) int {
 	return closest
 }
 
+func findShortestSteps(points1, points2 []Point2) int {
+	shortest := math.MaxInt64
+	for _, point := range points1 {
+		for _, point2 := range points2 {
+			if point.x == point2.x && point.y == point2.y {
+				currSteps := point.steps + point2.steps
+				if currSteps < shortest {
+					shortest = currSteps
+				}
+			}
+		}
+	}
+
+	return shortest
+}
+
 func readInput(path string) ([]string, error){
 	file, err := os.Open(path)
 	if err != nil {
@@ -128,17 +179,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	wireLocs1, err := getWireLocations(wires[0])
+	//wireLocs1, err := getWireLocations(wires[0])
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//wireLocs2, err := getWireLocations(wires[1])
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//intersections := wireLocs1.Intersection(wireLocs2)
+	//dist := findClosestIntersectionDist(intersections)
+	//
+	//fmt.Println("closest intersection to center is: ", dist)
+
+	wireLocs1, err := getWireLocationsWithSteps(wires[0])
 	if err != nil {
 		log.Fatal(err)
 	}
-	wireLocs2, err := getWireLocations(wires[1])
+	wireLocs2, err := getWireLocationsWithSteps(wires[1])
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	intersections := wireLocs1.Intersection(wireLocs2)
-	dist := findClosestIntersectionDist(intersections)
-
-	fmt.Println("closest intersection to center is: ", dist)
+	steps := findShortestSteps(wireLocs1, wireLocs2)
+	fmt.Println("smallest number of steps of interaction is: ", steps)
 }
