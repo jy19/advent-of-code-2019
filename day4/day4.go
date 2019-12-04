@@ -9,7 +9,10 @@ import (
 	"fmt"
 )
 
-const pwLength = 6
+const (
+	pwLength = 6
+	matchLength = 2
+)
 
 func findValidPasswords(input string) int {
 	inputRange := strings.Split(input, "-")
@@ -41,15 +44,25 @@ func isValidPassword(pw string) bool {
 		//log.Printf("length of input pw %v is not equal to pwLength %v", len(pw), pwLength)
 		return false
 	}
+	pw += "z"  // an end character since we check repeats on the next loop
 	hasRepeat := false
 	noDecrease := true
+	repeats := 1
 	var prevChar int32
 	for _, char := range pw {
 		if prevChar == char {
-			hasRepeat = true
+			repeats++
+			if repeats > matchLength && !hasRepeat {
+				hasRepeat = false
+			}
+		} else {
+			if repeats == matchLength {
+				//log.Printf("setting hasRepeat to true at char %c, pos %v", char, i)
+				hasRepeat = true
+			}
+			repeats = 1
 		}
 		if char < prevChar {
-			//log.Printf("char decreased, curr %c, prev %c", char, prevChar)
 			noDecrease = false
 		}
 		prevChar = char
